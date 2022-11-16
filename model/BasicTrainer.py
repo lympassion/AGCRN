@@ -21,6 +21,9 @@ class Trainer(object):
         self.args = args
         self.lr_scheduler = lr_scheduler
         self.train_per_epoch = len(train_loader)
+        # print(self.train_per_epoch)
+        # print('aaaa')
+        # exit()
         if val_loader != None:
             self.val_per_epoch = len(val_loader)
         self.best_path = os.path.join(self.args.log_dir, 'best_model.pth')
@@ -40,6 +43,8 @@ class Trainer(object):
         total_val_loss = 0
 
         with torch.no_grad():
+            # 可以知道data和target刚好错开一个小时，
+            # 论文中提到了，用一个小时的数据——data，去预测下一个小时的数据target
             for batch_idx, (data, target) in enumerate(val_dataloader):
                 data = data[..., :self.args.input_dim]
                 label = target[..., :self.args.output_dim]
@@ -55,11 +60,18 @@ class Trainer(object):
         return val_loss
 
     def train_epoch(self, epoch):
+        # 下面这个train函数是由module调用的，是一个库函数，而我们实现的train是由trainer调用的
         self.model.train()
         total_loss = 0
         for batch_idx, (data, target) in enumerate(self.train_loader):
+            # print('data', data.shape)
+            # print('target', type(target))
+
             data = data[..., :self.args.input_dim]
             label = target[..., :self.args.output_dim]  # (..., 1)
+            print('data', data.shape)
+            print('label', label.shape)
+            # exit()
             self.optimizer.zero_grad()
 
             #teacher_forcing for RNN encoder-decoder model
@@ -70,6 +82,7 @@ class Trainer(object):
             else:
                 teacher_forcing_ratio = 1.
             #data and target shape: B, T, N, F; output shape: B, T, N, F
+            # 对于pytorch来说，下面这个model对象自动调用forward函数
             output = self.model(data, target, teacher_forcing_ratio=teacher_forcing_ratio)
             if self.args.real_value:
                 label = self.scaler.inverse_transform(label)

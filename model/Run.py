@@ -20,7 +20,7 @@ from lib.TrainInits import print_model_parameters
 
 #*************************************************************************#
 Mode = 'Train'
-DEBUG = 'True'
+DEBUG = 'False'
 DATASET = 'PEMSD4'      #PEMSD4 or PEMSD8
 DEVICE = 'cuda:0'
 MODEL = 'AGCRN'
@@ -92,7 +92,7 @@ args.add_argument('--plot', default=config['log']['plot'], type=eval)
 args = args.parse_args()
 init_seed(args.seed)
 if torch.cuda.is_available():
-    torch.cuda.set_device(int(args.device[5]))
+    torch.cuda.set_device(int(args.device[5]))  # DEVICE = 'cuda:0'
 else:
     args.device = 'cpu'
 
@@ -107,6 +107,7 @@ for p in model.parameters():
 print_model_parameters(model, only_num=False)
 
 #load dataset
+# 得到训练的数据集，是通过DataLoader得到的
 train_loader, val_loader, test_loader, scaler = get_dataloader(args,
                                                                normalizer=args.normalizer,
                                                                tod=args.tod, dow=False,
@@ -143,6 +144,7 @@ args.log_dir = log_dir
 #start training
 trainer = Trainer(model, loss, optimizer, train_loader, val_loader, test_loader, scaler,
                   args, lr_scheduler=lr_scheduler)
+trainer.train()
 if args.mode == 'train':
     trainer.train()
 elif args.mode == 'test':

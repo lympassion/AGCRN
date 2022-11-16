@@ -51,6 +51,8 @@ class AGCRN(nn.Module):
         self.num_layers = args.num_layers
 
         self.default_graph = args.default_graph
+
+        # 使用这个函数的目的也是想让某些变量在学习的过程中不断的修改其值以达到最优化
         self.node_embeddings = nn.Parameter(torch.randn(self.num_node, args.embed_dim), requires_grad=True)
 
         self.encoder = AVWDCRNN(args.num_nodes, args.input_dim, args.rnn_units, args.cheb_k,
@@ -59,6 +61,7 @@ class AGCRN(nn.Module):
         #predictor
         self.end_conv = nn.Conv2d(1, args.horizon * self.output_dim, kernel_size=(1, self.hidden_dim), bias=True)
 
+    # GRU相应代码
     def forward(self, source, targets, teacher_forcing_ratio=0.5):
         #source: B, T_1, N, D
         #target: B, T_2, N, D

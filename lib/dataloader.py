@@ -74,7 +74,9 @@ def split_data_by_ratio(data, val_ratio, test_ratio):
 def data_loader(X, Y, batch_size, shuffle=True, drop_last=True):
     cuda = True if torch.cuda.is_available() else False
     TensorFloat = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+    # print('X', X)
     X, Y = TensorFloat(X), TensorFloat(Y)
+    # print('X_T', X)
     data = torch.utils.data.TensorDataset(X, Y)
     dataloader = torch.utils.data.DataLoader(data, batch_size=batch_size,
                                              shuffle=shuffle, drop_last=drop_last)
@@ -92,6 +94,8 @@ def get_dataloader(args, normalizer = 'std', tod=False, dow=False, weather=False
     else:
         data_train, data_val, data_test = split_data_by_ratio(data, args.val_ratio, args.test_ratio)
     #add time window
+    # 通过卷积核选择数据
+    print('data_train', data_train.shape)
     x_tra, y_tra = Add_Window_Horizon(data_train, args.lag, args.horizon, single)
     x_val, y_val = Add_Window_Horizon(data_val, args.lag, args.horizon, single)
     x_test, y_test = Add_Window_Horizon(data_test, args.lag, args.horizon, single)
@@ -100,6 +104,7 @@ def get_dataloader(args, normalizer = 'std', tod=False, dow=False, weather=False
     print('Test: ', x_test.shape, y_test.shape)
     ##############get dataloader######################
     train_dataloader = data_loader(x_tra, y_tra, args.batch_size, shuffle=True, drop_last=True)
+
     if len(x_val) == 0:
         val_dataloader = None
     else:
